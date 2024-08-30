@@ -184,11 +184,18 @@ async def youtube_dl_call_back(_bot, update):
         time_taken_for_download = (end_one - start).seconds
         file_size = Config.TG_MAX_FILE_SIZE + 1
 
-        try:
-            file_size = os.stat(download_directory).st_size
-        except FileNotFoundError:
-            download_directory = os.path.splitext(download_directory)[0] + "." + "mkv"
-            file_size = os.stat(download_directory).st_size
+        # Check for available file extensions
+        file_extensions = ['.mp4', '.webm', '.mkv']
+        for ext in file_extensions:
+            possible_file = f"{os.path.splitext(download_directory)[0]}{ext}"
+            if os.path.exists(possible_file):
+                download_directory = possible_file
+                file_size = os.stat(download_directory).st_size
+                break
+        else:
+            await update.message.edit_caption("File not found after download.")
+            shutil.rmtree(tmp_directory_for_each_user)
+            return False
 
         download_location = f"{Config.DOWNLOAD_LOCATION}/{update.from_user.id}.jpg"
         thumb = download_location if os.path.isfile(download_location) else None
