@@ -152,7 +152,7 @@ async def youtube_dl_call_back(_bot, update):
 
     command_to_exec.extend(["--no-warnings"])
 
-    logger.info(command_to_exec)
+    logger.info(f"Executing command: {' '.join(command_to_exec)}")
     start = datetime.now()
 
     process = await asyncio.create_subprocess_exec(
@@ -165,8 +165,8 @@ async def youtube_dl_call_back(_bot, update):
     e_response = stderr.decode().strip()
     t_response = stdout.decode().strip()
 
-    logger.info(e_response)
-    logger.info(t_response)
+    logger.info(f"yt-dlp stderr: {e_response}")
+    logger.info(f"yt-dlp stdout: {t_response}")
 
     if e_response and AD_STRING_TO_REPLACE in e_response:
         error_message = e_response.replace(AD_STRING_TO_REPLACE, "")
@@ -198,10 +198,10 @@ async def youtube_dl_call_back(_bot, update):
                     download_directory = fmt
                     found_file = True
                     break
-                if not found_file:
-                    await update.message.edit_caption(caption="Error: File not found after download.")
-                    return False
-
+            if not found_file:
+                logger.error("Error: File not found after download.")
+                await update.message.edit_caption(caption="Error: File not found after download.")
+                return False
 
         try:
             file_size = os.stat(download_directory).st_size
@@ -298,4 +298,3 @@ async def youtube_dl_call_back(_bot, update):
 
             logger.info("Downloaded in: %s", str(time_taken_for_download))
             logger.info("Uploaded in: %s", str(time_taken_for_upload))
-
