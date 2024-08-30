@@ -186,9 +186,22 @@ async def youtube_dl_call_back(_bot, update):
 
         # Check if file exists with the correct extension
         if not os.path.isfile(download_directory):
-            download_directory = os.path.splitext(download_directory)[0] + ".mkv"
-            if not os.path.isfile(download_directory):
-                download_directory = os.path.splitext(download_directory)[0] + ".mp4"
+            # Coba format yang berbeda jika file tidak ditemukan
+            alternative_formats = [
+                os.path.splitext(download_directory)[0] + ".mp4",
+                os.path.splitext(download_directory)[0] + ".webm",
+                os.path.splitext(download_directory)[0] + ".mkv"
+            ]
+            found_file = False
+            for fmt in alternative_formats:
+                if os.path.isfile(fmt):
+                    download_directory = fmt
+                    found_file = True
+                    break
+                if not found_file:
+                    await update.message.edit_caption(caption="Error: File not found after download.")
+                    return False
+
 
         try:
             file_size = os.stat(download_directory).st_size
